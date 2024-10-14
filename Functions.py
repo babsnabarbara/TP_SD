@@ -12,7 +12,7 @@ def get_current_timestamp():
     return int(time.time())
 
 def create_containers(elements):
-    return [{'id': i, 'cluster_port': 6000 + i, 'timestamp':-2, 'start': 'no'} for i in range(elements)]
+    return [{'id': i + 1, 'cluster_port': 6000 + i + 1, 'timestamp':-2, 'start': 'no'} for i in range(elements)]
 
 def receive_data(client):
     return client.recv(1024).decode('utf-8')

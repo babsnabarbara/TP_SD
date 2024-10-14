@@ -23,15 +23,15 @@ ok_ts = 0
 #comunicação entre servidores
 def server():
     global containers
-
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         #Socket para escutar servidor x servidor.
         server_socket.bind(('0.0.0.0', cluster_port))
         server_socket.listen(1)
         print(f"Container {container_id} ouvindo na porta {cluster_port}...")
-        server_socket.settimeout(2)
+        server_socket.settimeout(0.2)
         #Loop para o tempo inteiro estar lidando com interações entre servidores.
         while True:
+            server_atual = None
             try:
                 print("Aguardando conexão...")
                 server_atual, addr = server_socket.accept()  # Tenta aceitar uma conexão
@@ -61,14 +61,14 @@ def server():
             print(f'OK_ESCRITA enviados\n')
 
             #Aquele que recebe todos os OK, escreve no arquivo. Só escreve quando estiver os OK necessarios (sem race condition)
-            if ok_escrita == (len(containers_interessados) - 1) : escreve_arquivo() 
-            print(f'escreveu')
+            if ok_escrita == (len(containers_interessados) - 1): 
+                escreve_arquivo() 
+                print(f'escreveu')
 
             #reseta tudo
             reseta()
 
-            server_atual.close()
-            
+          
 
 def reseta():
     global client_timestamp, client_message
@@ -99,6 +99,7 @@ def envia_timestamps():
     print(f"CONTAINERS: {containers}")
     for con in containers:
         #manda timestamp pra todos os cont
+        print("CON ID: ", con['id'])
         con['timestamp'] = float(send_message(con, 'TIMESTAMP')) 
         print(f"SEND MESSAGE RETURN: {con['timestamp']}")
         #Se ele receber um TS, acrescenta a variável de OK_TS, de forma a ter ok_ts = 5 apenas se receber todos.
@@ -110,7 +111,8 @@ def send_message(container, message):
     print("CONTAINER: ", container)
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.connect((f"container_{container['id'] + 1}", container['cluster_port']))
+            print("CONTAINER_ID: ", container['id'])
+            sock.connect((f"container_{container['id']}", container['cluster_port']))
             sock.send(message.encode())
             recv = sock.recv(1024).decode()
             sock.close()
@@ -126,17 +128,26 @@ def verifica_timestamps():
 
 
 def handle_request(server_atual):
+    print("HANDLE_REQUEST STARTED")
     global ok_escrita
 
     #recebeu informação de algum servidor
+    data = None
     data = server_atual.recv(1024).decode()
+    print(f"data: {data}")
 
-    if not data:
+    if data == None:
+        print("DATA EQUALS NONE")
         return
 
     #O servidor quer enviar um TIMESTAMP e todos os outros precisam receber.
     if "TIMESTAMP" in data:
-        server_atual.send(str(client_timestamp).encode())
+        try:
+            server_atual.send(str(client_timestamp).encode())
+            print("CLIENT TIMESTAMP: ", client_message)
+            print("JUST SENT")
+        except Exception as e:
+            print("error inside handle request: ", e)
 
     #enviar OK quando um já estiver escrito.
     #logica: sempre que um servidor enviar um OK, o contador é incrementado.
@@ -158,6 +169,7 @@ def listen_client(client_socket):
         if message != "" and client_message == "": 
             client_message = extract_message(message)
             client_timestamp = extract_timestamp(message)
+            print(f"CLient message: {client_message} and client timestamp: {client_timestamp}")
             #conseguimos extrair informação do cliente (a mensagem e o seu timestamp)
 
             send_data(client_socket, "commited") 
@@ -170,6 +182,7 @@ def listen_client(client_socket):
 #Conectar o cliente no servidor
 #Inicializar um servidor
 server_socket = create_server('0.0.0.0', int(os.getenv('PORT')))  #(host, port)
+
 #thread para se comunicar com os outros servidores
 threading.Thread(target=server, daemon=True).start()
 print(f'Thread server rodando')

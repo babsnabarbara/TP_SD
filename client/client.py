@@ -3,12 +3,14 @@ import time
 import random
 from Functions import *
 
+
+
 def main():
-    quer_escrever = 0
-    host = '0.0.0.0'
-    #host = '192.168.31.108'
+    quer_escrever = 1
+
     port = int(os.getenv('PORT'))
     client_id = int(os.getenv('ID'))
+    host = f"container_{client_id}"
 
     commited = False
     
@@ -18,15 +20,15 @@ def main():
         i = 0
         while True:
             #Se quer_escrever = 0, o cliente nao quer escrever.
-            quer_escrever = random.randint(0,5)
+            #quer_escrever = random.randint(0,5)
 
             if not commited and quer_escrever != 0:
                 timestamp = get_current_timestamp()
                 commited = True
 
-            if quer_escrever == 0:
-                timestamp = -1
-                commited = True
+            #if quer_escrever == 0:
+            #    timestamp = -1
+            #    commited = True
 
             #message = CLIENT 1 TIME 15 - MESSAGE 1
             message = "client "+ str(client_id)+ " time: "+ str(timestamp) + " - message: "+ str(i)
@@ -40,7 +42,7 @@ def main():
             print(cluster_command)
             if cluster_command == "sleep":   
                 time.sleep(random.randint(1, 5)) 
-                
+
             elif cluster_command == "committed":
                 i+=1
                 commited = False

@@ -1,23 +1,12 @@
 version: '3.8'
-
+#SERVERS
 services:
   container_1:
-    environment:
-      - ID=0
-      - PORT=5000
-      - CLUSTER_PORT=6000
-    ports:
-      - "5000:5000"
-      - "6000:6000"
-    build: .
-    volumes:
-      - ./shared_data:/shared
-
-  container_2:
     environment:
       - ID=1
       - PORT=5001
       - CLUSTER_PORT=6001
+      - HOSTNAME=container_1
     ports:
       - "5001:5001"
       - "6001:6001"
@@ -25,11 +14,12 @@ services:
     volumes:
       - ./shared_data:/shared
 
-  container_3:
+  container_2:
     environment:
       - ID=2
       - PORT=5002
       - CLUSTER_PORT=6002
+      - HOSTNAME=container_2
     ports:
       - "5002:5002"
       - "6002:6002"
@@ -37,11 +27,12 @@ services:
     volumes:
       - ./shared_data:/shared
 
-  container_4:
+  container_3:
     environment:
       - ID=3
       - PORT=5003
       - CLUSTER_PORT=6003
+      - HOSTNAME=container_3
     ports:
       - "5003:5003"
       - "6003:6003"
@@ -49,14 +40,84 @@ services:
     volumes:
       - ./shared_data:/shared
 
-  container_5:
+  container_4:
     environment:
       - ID=4
       - PORT=5004
       - CLUSTER_PORT=6004
+      - HOSTNAME=container_4
     ports:
       - "5004:5004"
       - "6004:6004"
     build: .
     volumes:
       - ./shared_data:/shared
+
+  container_5:
+    environment:
+      - ID=5
+      - PORT=5005
+      - CLUSTER_PORT=6005
+      - HOSTNAME=container_5
+    ports:
+      - "5005:5005"
+      - "6005:6005"
+    build: .
+    volumes:
+      - ./shared_data:/shared
+
+#CLIENTS
+  client_1:
+    environment:
+      - ID=1
+      - PORT=5001
+      - HOSTNAME=client_1
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    depends_on:
+      - container_1
+
+  client_2:
+    environment:
+      - ID=2
+      - PORT=5002
+      - HOSTNAME=client_2
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    depends_on:
+      - container_2
+
+  client_3:
+    environment:
+      - ID=3
+      - PORT=5003
+      - HOSTNAME=client_3
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    depends_on:
+      - container_3
+
+  client_4:
+    environment:
+      - ID=4
+      - PORT=5004
+      - HOSTNAME=client_4
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    depends_on:
+      - container_4
+
+  client_5:
+    environment:
+      - ID=5
+      - PORT=5005
+      - HOSTNAME=client_5
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    depends_on:
+      - container_5
