@@ -32,8 +32,6 @@ def server():
         # Loop para o tempo inteiro estar lidando com interações entre servidores.
         while True:
             try:
-            
-                send_data(client_socket, json.dumps({'status': 'sleep'}))
         
             #print("Aguardando conexão...")
                 conn, addr = server_socket.accept()  # Tenta aceitar uma conexão
@@ -50,11 +48,13 @@ def server():
 
 def reseta():
     print ("RESETOU")
-    global client_timestamp, client_message, ok_escrita, ok_ts
+    global client_timestamp, client_message, ok_escrita, ok_ts, containers, containers_interessados
 
     client_message = ""
     client_timestamp = -2
     ok_escrita = 0  # Resetar o contador de OKs para escrita
+    containers = create_containers(5)
+    containers_interessados = ordena_timestamps()
 
 def escreve_arquivo():
     print("ARQUIVO")
@@ -153,7 +153,7 @@ def listen_client(client_socket):
 
     while True:
         message = client_socket.recv(1024).decode('utf-8')  # Recebe a mensagem do cliente
-        print(f"\nMensagem recebida do cliente: {message}\n")
+        #print(f"\nMensagem recebida do cliente: {message}\n")
         if not message:
             print("Conexão fechada pelo cliente.")
             break
@@ -173,10 +173,11 @@ def listen_client(client_socket):
             #print(f"\n\n\nMensagem do cliente: {client_message}, timestamp: {client_timestamp}\n\n\n")
                    
         else:
-            send_data(client_socket, json.dumps({'status': 'sleep'}))  # Informa que está ocupado
+            send_data(client_socket, json.dumps("{'status': 'sleep'}")) # Informa que está ocupado
             
 
 def trading_data():
+    global containers_interessados
     while True:
         if GET == True:
             # Enviar os TS para todos os servidores.
@@ -199,7 +200,11 @@ def trading_data():
             #print(f'OK_ESCRITA enviados\n')
             #print (f"ok escrita: {ok_escrita} e length: {len(containers_interessados)-1}")
             # Aquele que recebe todos os OK, escreve no arquivo.
-            if int(ok_escrita) == 4 or containers_interessados[0]['id'] == container_id:
+            #print (f"containers: {len(containers_interessados)}\n")
+            if int(ok_escrita) == 4 or (containers_interessados[0]['id'] == container_id):
+                print("IN")
+                if (containers_interessados[0]['id'] == container_id):
+                    containers_interessados[0]['id'] = -1
                 print('Escreveu')
                 escreve_arquivo()
                 envia_permissao_escrita(containers_interessados)
