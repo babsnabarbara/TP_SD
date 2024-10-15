@@ -2,8 +2,8 @@ import socket
 import threading
 import os
 import time
+import json  # Biblioteca JSON
 from Functions import *
-import re
 from datetime import datetime
 
 # Variáveis de ambiente
@@ -12,186 +12,204 @@ cluster_port = int(os.getenv('CLUSTER_PORT'))
 
 shared_file = '/shared/output.txt'
 
-client_message = "" #receber a mensagem do cliente
-client_timestamp = -2
-
+client_message =   ""# receber a mensagem do cliente
+client_timestamp = str(-5)
+GET = False
 containers = create_containers(5)
 
 ok_escrita = 0
 ok_ts = 0
 
-#comunicação entre servidores
+# Comunicação entre servidores
 def server():
-    global containers
+    global containers, GET
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-        #Socket para escutar servidor x servidor.
+        # Socket para escutar servidor x servidor.
         server_socket.bind(('0.0.0.0', cluster_port))
         server_socket.listen(1)
-        print(f"Container {container_id} ouvindo na porta {cluster_port}...")
+        #print(f"Container {container_id} ouvindo na porta {cluster_port}...")
         server_socket.settimeout(0.2)
-        #Loop para o tempo inteiro estar lidando com interações entre servidores.
+        # Loop para o tempo inteiro estar lidando com interações entre servidores.
         while True:
-            server_atual = None
             try:
-                print("Aguardando conexão...")
-                server_atual, addr = server_socket.accept()  # Tenta aceitar uma conexão
-                print(f"Conexão aceita de {addr}")
-                handle_request(server_atual)
+                #print("Aguardando conexão...")
+                conn, addr = server_socket.accept()  # Tenta aceitar uma conexão
+                #print(f"Conexão aceita de {addr}")
+                handle_request(conn)
+                conn.close()
 
             except socket.timeout:
                 # Se não houver conexão após o timeout, continua a execução
                 print("Nenhuma conexão recebida dentro do tempo limite. Continuando...")
                 # Aqui você pode fazer qualquer outra coisa, ou até encerrar o loop.
-        
-            #enviar os TS para todos os servidores.
-            envia_timestamps()
-            print(f'timestamps enviados')
-
-
-            #Verificar se todos os containers receberam todos os timestamps
-            verifica_timestamps()
-            print(f'timestamps verificados')
-
-            #Ordena os TS e guarda apenas os que querem escrever.
-            containers_interessados = ordena_timestamps()
-            print(f'timestamps ordenados')
-
-            #Manda OK_Escrita
-            envia_permissao_escrita(containers_interessados)
-            print(f'OK_ESCRITA enviados\n')
-
-            #Aquele que recebe todos os OK, escreve no arquivo. Só escreve quando estiver os OK necessarios (sem race condition)
-            if ok_escrita == (len(containers_interessados) - 1): 
-                escreve_arquivo() 
-                print(f'escreveu')
-
-            #reseta tudo
-            reseta()
-
-          
+            
 
 def reseta():
-    global client_timestamp, client_message
+    print ("RESETOU")
+    global client_timestamp, client_message, ok_escrita
 
     client_message = ""
     client_timestamp = -2
+    ok_escrita = 0  # Resetar o contador de OKs para escrita
 
 def escreve_arquivo():
+    print("ARQUIVO")
+    global GET
     with open(shared_file, 'a') as f:
-        f.write(f"Container {container_id} escreveu no arquivo em {datetime.now()}\n")
+        print ("CONTAINER ID: ", container_id)
+        f.write(f"Container {container_id} escreveu no arquivo com TS {client_timestamp}\n")
         f.write(f"Mensagem: {client_message}\n")  # Adiciona a mensagem recebida
+        GET = False
 
 def envia_permissao_escrita(containers_interessados):
     for con in containers_interessados:
-        if client_timestamp > con['timestamp']:
-            #manda um OK_ESCRITA pra todos os cont que tem TS maior que o meu
-            send_message(con, 'OK_ESCRITA')
-
-
+        if float(client_timestamp) > float(con['timestamp']):
+            # Manda um OK_ESCRITA para todos os containers que têm TS maior que o meu
+            x = send_message(con, {'command': 'OK_ESCRITA'})
+            
 def ordena_timestamps():
     global containers
-
     sorted_containers = sorted([c for c in containers if c['timestamp'] >= 0], key=lambda x: x['timestamp'])
     return sorted_containers
 
 def envia_timestamps():
     global ok_ts
-    print(f"CONTAINERS: {containers}")
+    #print(f"CONTAINERS: {containers}")
     for con in containers:
-        #manda timestamp pra todos os cont
-        print("CON ID: ", con['id'])
-        con['timestamp'] = float(send_message(con, 'TIMESTAMP')) 
-        print(f"SEND MESSAGE RETURN: {con['timestamp']}")
-        #Se ele receber um TS, acrescenta a variável de OK_TS, de forma a ter ok_ts = 5 apenas se receber todos.
+        # Manda timestamp para todos os containers
+        #print("CON ID: ", con['id'])
+        con['timestamp'] = float(send_message(con, {'command': 'TIMESTAMP'})) 
+        #print("AFTER")
+        #print(f"SEND MESSAGE RETURN: {con['timestamp']}")
         if con['timestamp'] != -2:
             ok_ts += 1
 
 # Função para enviar mensagem a outro container e receber resposta
 def send_message(container, message):
-    print("CONTAINER: ", container)
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            print("CONTAINER_ID: ", container['id'])
             sock.connect((f"container_{container['id']}", container['cluster_port']))
-            sock.send(message.encode())
-            recv = sock.recv(1024).decode()
-            sock.close()
-            return recv
-        
+            sock.send(json.dumps(message).encode('utf-8'))
+            
+
+            recv_data = sock.recv(1024).decode('utf-8')  # Receber os dados
+            
+            if not recv_data:  # Verifique se a mensagem recebida é vazia
+                print(f"Erro: Nenhuma mensagem recebida do container {container['id']}")
+                return -2
+            recv = json.loads(recv_data)  # Receber e decodificar como JSON
+            return recv.get('timestamp', -2)
     except ConnectionRefusedError:
         print(f"Falha ao conectar no container {container['id']}")
         return -2
+    except json.JSONDecodeError as e:
+        print(f"Erro ao decodificar JSON: {e}")
+        return -2
+
 
 def verifica_timestamps():
-    #verifica todos os containers interessados, ou seja, aqueles cujo timestamp é diferente de -2.
-    if ok_ts == 5 : return True
-
+    # Verifica se todos os containers interessados receberam timestamps
+    return ok_ts == 5
 
 def handle_request(server_atual):
-    print("HANDLE_REQUEST STARTED")
+    #print("HANDLE_REQUEST STARTED")
     global ok_escrita
 
-    #recebeu informação de algum servidor
-    data = None
-    data = server_atual.recv(1024).decode()
-    print(f"data: {data}")
+    # Recebe a informação de outro servidor
+    data = server_atual.recv(1024).decode('utf-8')
 
-    if data == None:
+    if not data:
         print("DATA EQUALS NONE")
         return
 
-    #O servidor quer enviar um TIMESTAMP e todos os outros precisam receber.
-    if "TIMESTAMP" in data:
-        try:
-            server_atual.send(str(client_timestamp).encode())
-            print("CLIENT TIMESTAMP: ", client_message)
-            print("JUST SENT")
-        except Exception as e:
-            print("error inside handle request: ", e)
+    # Decodifica a mensagem JSON recebida
+    data = json.loads(data)
+    #print(f"data: {data}")
 
-    #enviar OK quando um já estiver escrito.
-    #logica: sempre que um servidor enviar um OK, o contador é incrementado.
-    if "OK_ESCRITA" in data:
+    # Se o comando for "TIMESTAMP"
+    if data.get('command') == "TIMESTAMP":
+        try:
+            #print("CLIENT TIMESTAMP: ", client_timestamp)
+            response = json.dumps({'timestamp': client_timestamp}).encode('utf-8')
+            server_atual.send(response)
+            #print(f"Enviou timestamp: {client_timestamp}")
+        except Exception as e:
+            print(f"Erro ao enviar timestamp: {e}")
+
+    # Se o comando for "OK_ESCRITA"
+    if data.get('command') == "OK_ESCRITA":
+        response = json.dumps({'OK': "ok recebido"}).encode('utf-8')
+        server_atual.send(response)        
         ok_escrita += 1
 
-# Função para ouvir as mensagens dos clientes e processar.
+# Função para ouvir as mensagens dos clientes e processar
 def listen_client(client_socket):
-    global client_message, client_timestamp
+    global client_message, client_timestamp, GET
 
     while True:
-        message = client_socket.recv(1024).decode('utf-8') #mensagem inteira (junto com ID, PORT, etc)
-
+        message = client_socket.recv(1024).decode('utf-8')  # Recebe a mensagem do cliente
+        #print(f"\nMensagem recebida do cliente: {message}\n")
         if not message:
-            print("conexão fechada pelo cliente.")
+            print("Conexão fechada pelo cliente.")
             break
 
-        #receber a mensagem caso exista
-        if message != "" and client_message == "": 
-            client_message = extract_message(message)
-            client_timestamp = extract_timestamp(message)
-            print(f"CLient message: {client_message} and client timestamp: {client_timestamp}")
-            #conseguimos extrair informação do cliente (a mensagem e o seu timestamp)
-
-            send_data(client_socket, "commited") 
+        # Receber a mensagem caso exista
+        if message and not client_message:
+            message_data = json.loads(message)  # Decodificar JSON
+            #print ("JUST RECEIVED MESSAGE: ", message_data)
+            client_message = message_data.get('message', "")
+            print(f"client message === {client_message}")
+            if GET == False:
+                client_timestamp = message_data.get('timestamp', -2)
+                GET = True
+                send_data(client_socket, json.dumps({'status': 'committed'}))  # Enviar confirmação
+                
+            #print("CLIENT TIMESTAMP: ", client_timestamp)
+            #print(f"\n\n\nMensagem do cliente: {client_message}, timestamp: {client_timestamp}\n\n\n")
+                   
         else:
-            send_data(client_socket, "sleep") 
+            send_data(client_socket, json.dumps({'status': 'sleep'}))  # Informa que está ocupado
 
+def trading_data():
+    while True:
+        if GET == True:
+            # Enviar os TS para todos os servidores.
+            envia_timestamps()
+            #print(f'Timestamps enviados')
 
+            # Verificar se todos os containers receberam todos os timestamps
+            verifica_timestamps()
+            #print(f'Timestamps verificados')
 
+            # Ordena os TS e guarda apenas os que querem escrever.
 
-#Conectar o cliente no servidor
-#Inicializar um servidor
-server_socket = create_server('0.0.0.0', int(os.getenv('PORT')))  #(host, port)
+            containers_interessados = ordena_timestamps()
+            #print("containers ordenados: ", containers_interessados)
+            #print(f'Timestamps ordenados')
 
-#thread para se comunicar com os outros servidores
-threading.Thread(target=server, daemon=True).start()
-print(f'Thread server rodando')
+            # Manda OK_Escrita
+            envia_permissao_escrita(containers_interessados)
+            #print(f'OK_ESCRITA enviados\n')
+            print (f"ok escrita: {ok_escrita}")
+            # Aquele que recebe todos os OK, escreve no arquivo.
+            if int(ok_escrita) == int(len(containers_interessados) - 1):
+                print('Escreveu')
+                escreve_arquivo()
+            
+                # Reseta tudo
+                reseta()
+            
 
-#Cliente em contato com o servidor
+# Conectar o cliente no servidor
+server_socket = create_server('0.0.0.0', int(os.getenv('PORT')))  # (host, port)
+
+# Cliente em contato com o servidor
 client_socket = accept_client(server_socket)
 
-#thread para escutar o cliente
+# Thread para escutar o cliente
 threading.Thread(target=listen_client, args=(client_socket,)).start()
-print(f'Thread listen client rodando')
+#print('Thread listen client rodando')
 
+threading.Thread(target=trading_data).start()
 
+server()

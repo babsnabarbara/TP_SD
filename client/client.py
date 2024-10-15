@@ -1,9 +1,8 @@
 import socket
 import time
 import random
-from Functions import *
-
-
+import json
+from clientFunctions import *
 
 def main():
     quer_escrever = 1
@@ -14,39 +13,48 @@ def main():
 
     commited = False
     
+    # Cria o socket do cliente
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))  # Conectar ao servidor
+
     try:
         i = 0
         while True:
-            #Se quer_escrever = 0, o cliente nao quer escrever.
-            #quer_escrever = random.randint(0,5)
-
+            # Simulação de cliente querendo ou não escrever
             if not commited and quer_escrever != 0:
-                timestamp = get_current_timestamp()
+                timestamp = int(time.time() * 10000)
                 commited = True
 
-            #if quer_escrever == 0:
-            #    timestamp = -1
-            #    commited = True
-
-            #message = CLIENT 1 TIME 15 - MESSAGE 1
-            message = "client "+ str(client_id)+ " time: "+ str(timestamp) + " - message: "+ str(i)
+            # Montar mensagem com JSON
+            message = {
+                "client_id": client_id,
+                "timestamp": timestamp,
+                "message": f"{i}"
+            }
 
             if i >= 50:
-                message = ""
+                message = {
+                    "client_id": client_id,
+                    "timestamp": timestamp,
+                    "message": ""
+                }
 
-            client_socket.send(message.encode('utf-8'))
+            # Serializa a mensagem em JSON e envia
+            client_socket.send(json.dumps(message).encode('utf-8'))
+
+            # Receber a resposta do servidor
             cluster_command = receive_data(client_socket)
+            
 
-            print(cluster_command)
-            if cluster_command == "sleep":   
-                time.sleep(random.randint(1, 5)) 
 
-            elif cluster_command == "committed":
-                i+=1
+            # Processa a resposta do servidor
+            #print(cluster_command)
+            #time.sleep(0.2)
+            if cluster_command == '{"status": "sleep"}':   
+                time.sleep(0.2) 
+            elif cluster_command == '{"status": "committed"}':
+                i += 1
                 commited = False
-
 
     except OSError as e:
         print(f"Erro ao enviar dados: {e}")

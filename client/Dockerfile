@@ -2,7 +2,7 @@
 FROM python:3.9-slim
 
 # Copiar o script para o container
-COPY Functions.py /app/Functions.py
+COPY clientFunctions.py /app/clientFunctions.py
 COPY client.py /app/client.py
 
 # Definir o diretório de trabalho
