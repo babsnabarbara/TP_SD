@@ -13,7 +13,7 @@ def get_current_timestamp():
     return float(time.time())
 
 def create_containers(elements):
-    return [{'id': i + 1, 'cluster_port': 6000 + i + 1, 'timestamp': -2, 'start': 'no'} for i in range(elements)]
+    return [{'id': i + 1, 'cluster_port': 6000 + i + 1, 'timestamp': -2, 'send_ok': 'no'} for i in range(elements)]
 
 def receive_data(client):
     # Recebe os dados em formato JSON e converte para um dicionário

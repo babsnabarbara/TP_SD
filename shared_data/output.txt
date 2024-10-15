@@ -1,48 +1,106 @@
-Container 1 escreveu no arquivo com TS 17289746547520
+Container 4 escreveu no arquivo com TS 17289817584109
 Mensagem: 0
-Container 4 escreveu no arquivo com TS 17289746547892
+Container 1 escreveu no arquivo com TS 17289817584670
 Mensagem: 0
-Container 4 escreveu no arquivo com TS 17289746547896
+Container 4 escreveu no arquivo com TS 17289817584112
 Mensagem: 1
-Container 2 escreveu no arquivo com TS 17289746548175
+Container 3 escreveu no arquivo com TS 17289817584670
 Mensagem: 0
-Container 2 escreveu no arquivo com TS 17289746548179
+Container 2 escreveu no arquivo com TS 17289817584671
+Mensagem: 0
+Container 1 escreveu no arquivo com TS 17289817584674
 Mensagem: 1
-Container 4 escreveu no arquivo com TS 17289746558010
+Container 2 escreveu no arquivo com TS 17289817584675
+Mensagem: 1
+Container 5 escreveu no arquivo com TS 17289817584815
+Mensagem: 0
+Container 5 escreveu no arquivo com TS 17289817584819
+Mensagem: 1
+Container 4 escreveu no arquivo com TS 17289817586212
 Mensagem: 2
-Container 4 escreveu no arquivo com TS 17289746568056
-Mensagem: 3
-Container 2 escreveu no arquivo com TS 17289746576264
+Container 2 escreveu no arquivo com TS 17289817598756
 Mensagem: 2
-Container 2 escreveu no arquivo com TS 17289746586353
+Container 4 escreveu no arquivo com TS 17289817586212
+Mensagem: 2
+Container 2 escreveu no arquivo com TS 17289817622816
 Mensagem: 3
-Container 4 escreveu no arquivo com TS 17289746594187
+Container 5 escreveu no arquivo com TS 17289817623001
+Mensagem: 2
+Container 4 escreveu no arquivo com TS 17289817624394
+Mensagem: 3
+Container 2 escreveu no arquivo com TS 17289817622816
+Mensagem: 3
+Container 5 escreveu no arquivo com TS 17289817623001
+Mensagem: 2
+Container 4 escreveu no arquivo com TS 17289817626448
 Mensagem: 4
-Container 5 escreveu no arquivo com TS 17289746691861
-Mensagem: 0
-Container 4 escreveu no arquivo com TS 17289746692053
-Mensagem: 0
-Container 3 escreveu no arquivo com TS 17289746692317
-Mensagem: 0
-Container 2 escreveu no arquivo com TS 17289746693012
-Mensagem: 0
-Container 5 escreveu no arquivo com TS 17289746691865
-Mensagem: 1
-Container 2 escreveu no arquivo com TS 17289746693015
-Mensagem: 1
-Container 5 escreveu no arquivo com TS 17289746693920
-Mensagem: 2
-Container 2 escreveu no arquivo com TS 17289746695109
-Mensagem: 2
-Container 5 escreveu no arquivo com TS 17289746695935
-Mensagem: 3
-Container 2 escreveu no arquivo com TS 17289746697173
-Mensagem: 3
-Container 5 escreveu no arquivo com TS 17289746698050
+Container 2 escreveu no arquivo com TS 17289817626913
 Mensagem: 4
-Container 2 escreveu no arquivo com TS 17289746699476
-Mensagem: 4
-Container 5 escreveu no arquivo com TS 17289746700140
+Container 5 escreveu no arquivo com TS 17289817627031
+Mensagem: 3
+Container 4 escreveu no arquivo com TS 17289817628503
 Mensagem: 5
-Container 2 escreveu no arquivo com TS 17289746701521
+Container 2 escreveu no arquivo com TS 17289817626913
+Mensagem: 4
+Container 5 escreveu no arquivo com TS 17289817629086
+Mensagem: 4
+Container 4 escreveu no arquivo com TS 17289817628503
 Mensagem: 5
+Container 2 escreveu no arquivo com TS 17289817626913
+Mensagem: 4
+Container 5 escreveu no arquivo com TS 17289817631129
+Mensagem: 5
+Container 4 escreveu no arquivo com TS 17289817628503
+Mensagem: 5
+Container 2 escreveu no arquivo com TS 17289817626913
+Mensagem: 4
+Container 5 escreveu no arquivo com TS 17289817633194
+Mensagem: 6
+Container 4 escreveu no arquivo com TS 17289817628503
+Mensagem: 5
+Container 2 escreveu no arquivo com TS 17289817626913
+Mensagem: 4
+Container 5 escreveu no arquivo com TS 17289817635245
+Mensagem: 7
+Container 4 escreveu no arquivo com TS 17289817636727
+Mensagem: 6
+Container 2 escreveu no arquivo com TS 17289817626913
+Mensagem: 4
+Container 5 escreveu no arquivo com TS 17289817637300
+Mensagem: 8
+Container 4 escreveu no arquivo com TS 17289817638783
+Mensagem: 7
+Container 2 escreveu no arquivo com TS 17289817626913
+Mensagem: 4
+Container 5 escreveu no arquivo com TS 17289817639309
+Mensagem: 9
+Container 4 escreveu no arquivo com TS 17289817640839
+Mensagem: 8
+Container 2 escreveu no arquivo com TS 17289817626913
+Mensagem: 4
+Container 5 escreveu no arquivo com TS 17289817641319
+Mensagem: 10
+Container 4 escreveu no arquivo com TS 17289817642894
+Mensagem: 9
+Container 2 escreveu no arquivo com TS 17289817626913
+Mensagem: 4
+Container 5 escreveu no arquivo com TS 17289817643374
+Mensagem: 11
+Container 4 escreveu no arquivo com TS 17289817644949
+Mensagem: 10
+Container 2 escreveu no arquivo com TS 17289817645262
+Mensagem: 5
+Container 5 escreveu no arquivo com TS 17289817645474
+Mensagem: 12
+Container 4 escreveu no arquivo com TS 17289817644949
+Mensagem: 10
+Container 2 escreveu no arquivo com TS 17289817645262
+Mensagem: 5
+Container 5 escreveu no arquivo com TS 17289817645474
+Mensagem: 12
+Container 4 escreveu no arquivo com TS 17289817644949
+Mensagem: 10
+Container 5 escreveu no arquivo com TS 17289817645474
+Mensagem: 12
+Container 2 escreveu no arquivo com TS 17289817649370
+Mensagem: 6

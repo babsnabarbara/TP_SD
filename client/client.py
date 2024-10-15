@@ -24,7 +24,6 @@ def main():
             if not commited and quer_escrever != 0:
                 timestamp = int(time.time() * 10000)
                 commited = True
-
             # Montar mensagem com JSON
             message = {
                 "client_id": client_id,

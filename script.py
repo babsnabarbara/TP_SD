@@ -32,9 +32,13 @@ def server():
         # Loop para o tempo inteiro estar lidando com interações entre servidores.
         while True:
             try:
-                #print("Aguardando conexão...")
+            
+                send_data(client_socket, json.dumps({'status': 'sleep'}))
+        
+            #print("Aguardando conexão...")
                 conn, addr = server_socket.accept()  # Tenta aceitar uma conexão
                 #print(f"Conexão aceita de {addr}")
+                
                 handle_request(conn)
                 conn.close()
 
@@ -46,7 +50,7 @@ def server():
 
 def reseta():
     print ("RESETOU")
-    global client_timestamp, client_message, ok_escrita
+    global client_timestamp, client_message, ok_escrita, ok_ts
 
     client_message = ""
     client_timestamp = -2
@@ -109,12 +113,12 @@ def send_message(container, message):
 
 def verifica_timestamps():
     # Verifica se todos os containers interessados receberam timestamps
+    #print ("OK TS: ", ok_ts)
     return ok_ts == 5
 
 def handle_request(server_atual):
     #print("HANDLE_REQUEST STARTED")
-    global ok_escrita
-
+    
     # Recebe a informação de outro servidor
     data = server_atual.recv(1024).decode('utf-8')
 
@@ -138,6 +142,7 @@ def handle_request(server_atual):
 
     # Se o comando for "OK_ESCRITA"
     if data.get('command') == "OK_ESCRITA":
+
         response = json.dumps({'OK': "ok recebido"}).encode('utf-8')
         server_atual.send(response)        
         ok_escrita += 1
@@ -148,7 +153,7 @@ def listen_client(client_socket):
 
     while True:
         message = client_socket.recv(1024).decode('utf-8')  # Recebe a mensagem do cliente
-        #print(f"\nMensagem recebida do cliente: {message}\n")
+        print(f"\nMensagem recebida do cliente: {message}\n")
         if not message:
             print("Conexão fechada pelo cliente.")
             break
@@ -169,6 +174,7 @@ def listen_client(client_socket):
                    
         else:
             send_data(client_socket, json.dumps({'status': 'sleep'}))  # Informa que está ocupado
+            
 
 def trading_data():
     while True:
@@ -178,7 +184,7 @@ def trading_data():
             #print(f'Timestamps enviados')
 
             # Verificar se todos os containers receberam todos os timestamps
-            verifica_timestamps()
+            #if verifica_timestamps():
             #print(f'Timestamps verificados')
 
             # Ordena os TS e guarda apenas os que querem escrever.
@@ -188,13 +194,15 @@ def trading_data():
             #print(f'Timestamps ordenados')
 
             # Manda OK_Escrita
-            envia_permissao_escrita(containers_interessados)
+            
+            
             #print(f'OK_ESCRITA enviados\n')
-            print (f"ok escrita: {ok_escrita}")
+            #print (f"ok escrita: {ok_escrita} e length: {len(containers_interessados)-1}")
             # Aquele que recebe todos os OK, escreve no arquivo.
-            if int(ok_escrita) == int(len(containers_interessados) - 1):
+            if int(ok_escrita) == 4 or containers_interessados[0]['id'] == container_id:
                 print('Escreveu')
                 escreve_arquivo()
+                envia_permissao_escrita(containers_interessados)
             
                 # Reseta tudo
                 reseta()
