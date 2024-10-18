@@ -16,6 +16,7 @@ client_message =   ""# receber a mensagem do cliente
 client_timestamp = str(-5)
 GET = False
 containers = create_containers(5)
+ok_written = 0
 
 ok_escrita = 0
 ok_ts = 0
@@ -48,13 +49,15 @@ def server():
 
 def reseta():
     print ("RESETOU")
-    global client_timestamp, client_message, ok_escrita, ok_ts, containers, containers_interessados
+    global client_timestamp, client_message, ok_escrita, ok_ts, containers, containers_interessados, ok_written
 
     client_message = ""
     client_timestamp = -2
     ok_escrita = 0  # Resetar o contador de OKs para escrita
     containers = create_containers(5)
     containers_interessados = ordena_timestamps()
+    ok_ts = 0
+    ok_written = 0
 
 def escreve_arquivo():
     print("ARQUIVO")
@@ -67,9 +70,14 @@ def escreve_arquivo():
 
 def envia_permissao_escrita(containers_interessados):
     for con in containers_interessados:
-        if float(client_timestamp) > float(con['timestamp']):
+        if float(client_timestamp) < float(con['timestamp']):
             # Manda um OK_ESCRITA para todos os containers que têm TS maior que o meu
             x = send_message(con, {'command': 'OK_ESCRITA'})
+            print("ENVIEI OK ESCRITA")
+            
+def envia_que_escreveu(containers):
+    for con in containers: 
+        x = send_message(con, {'command': 'OK_WRITTEN'})
             
 def ordena_timestamps():
     global containers
@@ -85,8 +93,10 @@ def envia_timestamps():
         con['timestamp'] = float(send_message(con, {'command': 'TIMESTAMP'})) 
         #print("AFTER")
         #print(f"SEND MESSAGE RETURN: {con['timestamp']}")
-        if con['timestamp'] != -2:
-            ok_ts += 1
+        if con['timestamp'] != -2 and ok_ts < 5:
+            print("YESS")
+            con['responded'] = "yes"
+            
 
 # Função para enviar mensagem a outro container e receber resposta
 def send_message(container, message):
@@ -117,6 +127,7 @@ def verifica_timestamps():
     return ok_ts == 5
 
 def handle_request(server_atual):
+    global ok_written, ok_escrita
     #print("HANDLE_REQUEST STARTED")
     
     # Recebe a informação de outro servidor
@@ -141,11 +152,18 @@ def handle_request(server_atual):
             print(f"Erro ao enviar timestamp: {e}")
 
     # Se o comando for "OK_ESCRITA"
-    if data.get('command') == "OK_ESCRITA":
+    if data.get('command') == "OK_ESCRITA" and ok_ts == 5 and ok_escrita < 4:
 
         response = json.dumps({'OK': "ok recebido"}).encode('utf-8')
         server_atual.send(response)        
         ok_escrita += 1
+        print("OK ESCRITA")
+    if data.get('command') == "OK_WRITTEN":
+
+        response = json.dumps({'OK': "ok written recebido"}).encode('utf-8')
+        server_atual.send(response)        
+        ok_written += 1
+        print("OK WRITTEN")
 
 # Função para ouvir as mensagens dos clientes e processar
 def listen_client(client_socket):
@@ -176,21 +194,47 @@ def listen_client(client_socket):
             send_data(client_socket, json.dumps("{'status': 'sleep'}")) # Informa que está ocupado
             
 
+def encontrar_container_por_id(containers, id_para_encontrar):
+    for indice, container in enumerate(containers):
+        if container['id'] == id_para_encontrar:
+            return indice
+    return -1
+
+
 def trading_data():
-    global containers_interessados
+    global containers_interessados, ok_ts
+    escreveu = False
+    
     while True:
-        if GET == True:
-            # Enviar os TS para todos os servidores.
+        print(f"OK TS VALOR: {ok_ts}")
+        time.sleep(0.2)
+        if ok_written == 5:
+            escreveu = False
+            
+
+        if ok_ts < 5:
+
             envia_timestamps()
+            counting_okts = 0
+            for con in containers:
+                if con['responded'] == "yes":
+                    counting_okts += 1
+            ok_ts = counting_okts
+            
+        elif ok_ts == 5 and  GET == True:
+            print (f"OK ESCRITA DENTRO: {ok_escrita}")
+            # Enviar os TS para todos os servidores.
+            
             #print(f'Timestamps enviados')
 
             # Verificar se todos os containers receberam todos os timestamps
             #if verifica_timestamps():
-            #print(f'Timestamps verificados')
+            #print(f'Timestamps verificados')F
 
             # Ordena os TS e guarda apenas os que querem escrever.
 
             containers_interessados = ordena_timestamps()
+            #print(f"containers interessados: {containers_interessados}")
             #print("containers ordenados: ", containers_interessados)
             #print(f'Timestamps ordenados')
 
@@ -201,17 +245,20 @@ def trading_data():
             #print (f"ok escrita: {ok_escrita} e length: {len(containers_interessados)-1}")
             # Aquele que recebe todos os OK, escreve no arquivo.
             #print (f"containers: {len(containers_interessados)}\n")
-            if int(ok_escrita) == 4 or (containers_interessados[0]['id'] == container_id):
-                print("IN")
-                if (containers_interessados[0]['id'] == container_id):
-                    containers_interessados[0]['id'] = -1
-                print('Escreveu')
-                escreve_arquivo()
-                envia_permissao_escrita(containers_interessados)
             
-                # Reseta tudo
-                reseta()
-            
+            #print (f"CONTAINERS: {containers_interessados}")
+            print (f"ok escrita: {ok_escrita}")
+            if ok_ts == 5  and escreveu == False:
+                if (encontrar_container_por_id(containers_interessados, container_id) - ok_escrita ) == 0:
+                    escreveu = True
+                    print('Escreveu')
+                    escreve_arquivo()
+                    envia_que_escreveu(containers)
+                    envia_permissao_escrita(containers_interessados)
+                
+                    # Reseta tudo
+                    
+        
 
 # Conectar o cliente no servidor
 server_socket = create_server('0.0.0.0', int(os.getenv('PORT')))  # (host, port)
