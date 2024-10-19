@@ -59,6 +59,7 @@ def reseta():
     ok_ts = 0
     ok_written = 0
     escreveu = False
+    time.sleep(1)
 
 def escreve_arquivo():
     print("ARQUIVO")
@@ -248,7 +249,7 @@ def trading_data():
             #print (f"containers: {len(containers_interessados)}\n")
             
             #print (f"CONTAINERS: {containers_interessados}")
-            print (f"ok escrita: {ok_escrita}")
+            print (f"ok escrita: {ok_escrita} e containers interessados {containers_interessados}")
             if ok_ts == 5  and escreveu == False:
                 if (encontrar_container_por_id(containers_interessados, container_id) - ok_escrita ) == 0:
                     escreveu = True

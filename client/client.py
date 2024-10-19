@@ -44,16 +44,17 @@ def main():
 
             # Receber a resposta do servidor
             cluster_command = receive_data(client_socket)
+            cluster_command = json.loads(cluster_command)
             
 
 
             # Processa a resposta do servidor
             #print(cluster_command)
             #time.sleep(0.2)
-            if cluster_command == {"status": "sleep"}:   
-                rand = random.int(1,5)
-                time.sleep(rand/10) 
-            elif cluster_command == {"status": "committed"}:
+            #if cluster_command == {"status": "sleep"}:   
+            #    rand = random.int(1,5)
+            #    time.sleep(rand/10) 
+            if cluster_command == {"status": "committed"}:
                 i += 1
                 commited = False
                 
