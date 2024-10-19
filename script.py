@@ -179,7 +179,10 @@ def listen_client(client_socket):
             break
 
         # Receber a mensagem caso exista
-        if message and not client_message:
+        
+        if message and client_message == -1:
+            send_data(client_socket, json.dumps({'status': 'sleep'}))      
+        elif message and not client_message:
             message_data = json.loads(message)  # Decodificar JSON
             #print ("JUST RECEIVED MESSAGE: ", message_data)
             client_message = message_data.get('message', "")
@@ -191,8 +194,7 @@ def listen_client(client_socket):
                 
                 
             #print("CLIENT TIMESTAMP: ", client_timestamp)
-            #print(f"\n\n\nMensagem do cliente: {client_message}, timestamp: {client_timestamp}\n\n\n")
-                   
+            #print(f"\n\n\nMensagem do cliente: {client_message}, timestamp: {client_timestamp}\n\n\n")  
         else:
             send_data(client_socket, json.dumps({'status': 'sleep'})) # Informa que está ocupado
             

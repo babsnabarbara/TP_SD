@@ -20,11 +20,13 @@ def main():
     try:
         i = 0
         while True:
-            #quer_escrever = random.randint(0,1)
+            
+            
             # Simulação de cliente querendo ou não escrever
             if not commited and quer_escrever != 0:
                 timestamp = int(time.time() * 10000)
                 commited = True
+
             # Montar mensagem com JSON
             message = {
                 "client_id": client_id,
@@ -38,7 +40,9 @@ def main():
                     "timestamp": timestamp,
                     "message": ""
                 }
-
+            
+            if quer_escrever == 0:
+                message['message'] = -1
             # Serializa a mensagem em JSON e envia
             client_socket.send(json.dumps(message).encode('utf-8'))
 
@@ -51,9 +55,8 @@ def main():
             # Processa a resposta do servidor
             #print(cluster_command)
             #time.sleep(0.2)
-            #if cluster_command == {"status": "sleep"}:   
-            #    rand = random.int(1,5)
-            #    time.sleep(rand/10) 
+            #if cluster_command == {"status": "sleep"}:  
+            #    time.sleep(0.1) 
             if cluster_command == {"status": "committed"}:
                 i += 1
                 commited = False
