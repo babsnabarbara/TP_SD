@@ -49,7 +49,7 @@ def server():
 
 def reseta():
     print ("RESETOU")
-    global client_timestamp, client_message, ok_escrita, ok_ts, containers, containers_interessados, ok_written
+    global client_timestamp, client_message, ok_escrita, ok_ts, containers, containers_interessados, ok_written, escreveu
 
     client_message = ""
     client_timestamp = -2
@@ -58,6 +58,7 @@ def reseta():
     containers_interessados = ordena_timestamps()
     ok_ts = 0
     ok_written = 0
+    escreveu = False
 
 def escreve_arquivo():
     print("ARQUIVO")
@@ -187,11 +188,12 @@ def listen_client(client_socket):
                 GET = True
                 send_data(client_socket, json.dumps({'status': 'committed'}))  # Enviar confirmação
                 
+                
             #print("CLIENT TIMESTAMP: ", client_timestamp)
             #print(f"\n\n\nMensagem do cliente: {client_message}, timestamp: {client_timestamp}\n\n\n")
                    
         else:
-            send_data(client_socket, json.dumps("{'status': 'sleep'}")) # Informa que está ocupado
+            send_data(client_socket, json.dumps({'status': 'sleep'})) # Informa que está ocupado
             
 
 def encontrar_container_por_id(containers, id_para_encontrar):
@@ -202,16 +204,15 @@ def encontrar_container_por_id(containers, id_para_encontrar):
 
 
 def trading_data():
-    global containers_interessados, ok_ts
+    global containers_interessados, ok_ts, escreveu
     escreveu = False
     
     while True:
         print(f"OK TS VALOR: {ok_ts}")
         time.sleep(0.2)
         if ok_written == 5:
-            escreveu = False
-            
-
+            reseta()
+            print("RESETOU")
         if ok_ts < 5:
 
             envia_timestamps()

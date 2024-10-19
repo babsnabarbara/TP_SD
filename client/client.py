@@ -20,6 +20,7 @@ def main():
     try:
         i = 0
         while True:
+            #quer_escrever = random.randint(0,1)
             # Simulação de cliente querendo ou não escrever
             if not commited and quer_escrever != 0:
                 timestamp = int(time.time() * 10000)
@@ -49,12 +50,14 @@ def main():
             # Processa a resposta do servidor
             #print(cluster_command)
             #time.sleep(0.2)
-            if cluster_command == '{"status": "sleep"}':   
-                time.sleep(0.2) 
-            elif cluster_command == '{"status": "committed"}':
+            if cluster_command == {"status": "sleep"}:   
+                rand = random.int(1,5)
+                time.sleep(rand/10) 
+            elif cluster_command == {"status": "committed"}:
                 i += 1
                 commited = False
-
+                
+            
     except OSError as e:
         print(f"Erro ao enviar dados: {e}")
     except KeyboardInterrupt:
